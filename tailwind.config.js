@@ -15,8 +15,10 @@ export default {
       keyframes: {
         'slow-zoom': { '0%': { transform: 'scale(1)' }, '100%': { transform: 'scale(1.08)' } },
         shimmer: { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
+        marquee: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
       },
       animation: {
+        marquee: 'marquee 40s linear infinite',
         'slow-zoom': 'slow-zoom 20s ease-out infinite alternate',
         shimmer: 'shimmer 6s linear infinite',
       },

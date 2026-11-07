@@ -19,7 +19,7 @@ Everything lives in [`src/ShriAmbaLanding.jsx`](src/ShriAmbaLanding.jsx). Busine
 
 - `whatsapp`: the real WhatsApp number (digits only, with the 91 country code). **Placeholder right now.**
 - `gstin` / `udyam`: registration numbers for the footer badges. **Placeholders right now.**
-- `HERO_MEDIA.video`: set an `.mp4` URL to swap the hero image for a background video.
-- `COLLECTIONS`: card titles, copy and images (currently Unsplash stock photos).
+- `CATALOGUE_BRANDS`, `COLLECTIONS`, `FRESH_ARRIVALS`, `LOOKBOOK`: section content.
+- Photos live in `public/images/` (from @shriambatex, resized to WebP). Swap files with the same names to update them.
 
 The inquiry form has no backend. On submit it opens WhatsApp with the inquiry pre-filled.

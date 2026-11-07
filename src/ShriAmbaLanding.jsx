@@ -1,20 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ArrowLeft,
   ArrowRight,
   ArrowDown,
+  ArrowUpRight,
   BadgeCheck,
   CheckCircle2,
   Clock,
+  Gem,
   Instagram,
   Layers,
   MapPin,
   Menu,
+  Navigation,
   Phone,
   Quote,
   Send,
   ShieldCheck,
   Sparkles,
   Store,
+  TrendingUp,
+  Truck,
   Wallet,
   X,
 } from 'lucide-react';
@@ -24,6 +30,8 @@ import {
 /* ------------------------------------------------------------------ */
 const BRAND = {
   name: 'Shri Amba Textiles',
+  legalName: 'Shri Amba Textiles Pvt. Ltd.',
+  label: 'SARVA',
   tagline: 'Business sirf products se nahi, trust se chalta hai.',
   taglineEn: 'Business runs not just on products — it runs on trust.',
   years: '25+',
@@ -34,41 +42,61 @@ const BRAND = {
     line1: 'Kucha Kabil Attar, Poonam Cloth Market',
     line2: 'Chandni Chowk, Delhi — 110006',
   },
+  mapsQuery: 'Shri Amba Textiles, Kucha Kabil Attar, Chandni Chowk, Delhi',
+  // TODO: confirm store hours and registration numbers
   hours: 'Mon – Sat · 10:30 AM – 7:30 PM',
-  // TODO: replace with real registration numbers
   gstin: '07XXXXXXXXXXXZX',
   udyam: 'UDYAM-DL-XX-XXXXXXX',
 };
 
-const HERO_MEDIA = {
-  // Swap in a brand video by setting `video` to an .mp4 URL — the image acts as poster/fallback.
-  video: '',
-  image:
-    'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=2000&q=80',
-};
+const img = (name) => `/images/${name}.webp`;
+
+// Catalogue brands stocked, as listed on @shriambatex
+const CATALOGUE_BRANDS = ['Omtex', 'Jay Vijay', 'Kimora', 'Kesar', 'Varshaa', 'Salvi', 'Sargam', 'Sahiba'];
 
 const COLLECTIONS = [
   {
-    title: 'Designer Sharara Sets',
-    tag: 'Festive & Bridal',
-    desc: 'Hand-finished embroidery, flowing silhouettes and ready-to-sell sets for festive season stock.',
-    image:
-      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1200&q=80',
+    title: 'Premium Catalogue Suits',
+    tag: 'Top catalogue brands',
+    desc: 'Full catalogues from Omtex, Kimora, Sahiba, Jay Vijay and more — every design, one counter.',
+    image: img('model-olive'),
   },
   {
-    title: 'Shazar Velvet',
+    title: 'SARVA Non-Catalogue',
+    tag: 'Fresh every week',
+    desc: "Exclusive designs your customers won't find in every shop on the street. Better margins, fewer clashes.",
+    image: img('model-navy'),
+  },
+  {
+    title: 'Embroidered Winter Suits',
     tag: 'Winter Luxe',
-    desc: 'Deep-pile, rich-toned velvet with a royal drape — a premium staple for the winter counter.',
-    image:
-      'https://images.unsplash.com/photo-1528459105426-b9548367069b?auto=format&fit=crop&w=1200&q=80',
+    desc: 'Rich aari-style embroidery on warm, deep-toned bases with matching embroidered dupattas.',
+    image: img('flat-plum-embroidered'),
   },
   {
-    title: 'Unstitched Muslin',
+    title: 'Cotton Block Prints',
     tag: 'Everyday Bestseller',
-    desc: 'Soft, breathable muslin suits in curated prints — fast-moving inventory for every boutique.',
-    image:
-      'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80',
+    desc: 'Hand-block printed cotton sets with kota dupattas — fast-moving stock for every season.',
+    image: img('flat-block-print'),
   },
+];
+
+const FRESH_ARRIVALS = [
+  { name: 'Teal Paisley Print', note: 'Printed dupatta · embroidered yoke', image: img('flat-teal-paisley') },
+  { name: 'Peacock Kalamkari', note: 'Hand-painted look · 4 colours', image: img('flat-peacock-magenta') },
+  { name: 'Noir Thread Embroidery', note: 'Tasselled dupatta · 4 colours', image: img('flat-black-embroidered') },
+  { name: 'Midnight Paisley Panel', note: 'Kashmiri motif · 4 colours', image: img('flat-navy-kalamkari') },
+  { name: 'Mocha Damask Print', note: 'All-over print · 2 colours', image: img('flat-mocha-printed') },
+  { name: 'Plum Aari Embroidery', note: 'Floral jaal · 6 colours', image: img('flat-plum-embroidered') },
+];
+
+const LOOKBOOK = [
+  img('model-aqua'),
+  img('model-powder-blue'),
+  img('model-rust'),
+  img('model-beige'),
+  img('model-mocha'),
+  img('model-emerald'),
 ];
 
 const VALUE_PROPS = [
@@ -90,6 +118,19 @@ const VALUE_PROPS = [
   },
 ];
 
+const PROMISES = [
+  { icon: Gem, label: 'Exclusive non-catalogue designs' },
+  { icon: TrendingUp, label: 'Better retail margins' },
+  { icon: Truck, label: 'Pan-India wholesale supply' },
+  { icon: Sparkles, label: 'Huge variety under one roof' },
+];
+
+const NAV = [
+  ['Collections', 'collections'],
+  ['Fresh Arrivals', 'fresh'],
+  ['Showroom', 'showroom'],
+];
+
 const waLink = (text = '') =>
   `https://wa.me/${BRAND.whatsapp}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 
@@ -100,7 +141,7 @@ const scrollToId = (id) => document.getElementById(id)?.scrollIntoView({ behavio
 /* ------------------------------------------------------------------ */
 
 /** Fades + lifts children into view the first time they enter the viewport. */
-function Reveal({ children, delay = 0, className = '', as: Tag = 'div' }) {
+function Reveal({ children, delay = 0, className = '' }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 
@@ -118,22 +159,22 @@ function Reveal({ children, delay = 0, className = '', as: Tag = 'div' }) {
           io.disconnect();
         }
       },
-      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
     );
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
   return (
-    <Tag
+    <div
       ref={ref}
       style={{ transitionDelay: `${delay}ms` }}
       className={`transition-all duration-1000 ease-out ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
       } ${className}`}
     >
       {children}
-    </Tag>
+    </div>
   );
 }
 
@@ -167,6 +208,14 @@ function Eyebrow({ children, light = false }) {
   );
 }
 
+function SarvaMark({ className = '' }) {
+  return (
+    <span className={`font-serif italic tracking-[0.18em] ${className}`}>
+      SARVA<sup className="ml-0.5 text-[0.5em] not-italic">®</sup>
+    </span>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Page                                                              */
 /* ------------------------------------------------------------------ */
@@ -177,6 +226,7 @@ export default function ShriAmbaLanding() {
   const [form, setForm] = useState({ name: '', business: '', phone: '', requirements: '' });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const railRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -185,13 +235,19 @@ export default function ShriAmbaLanding() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const requestQuote = (collection) => {
+  const requestQuote = (item) => {
     setSubmitted(false);
+    setErrors((e) => ({ ...e, requirements: undefined }));
     setForm((f) => ({
       ...f,
-      requirements: `Bulk quote request: ${collection} — please share catalogue, MOQ & wholesale rates.`,
+      requirements: `Interested in: ${item} — please share photos, available colours, MOQ & wholesale rates.`,
     }));
     scrollToId('contact');
+  };
+
+  const scrollRail = (dir) => {
+    const el = railRef.current;
+    if (el) el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: 'smooth' });
   };
 
   const validate = () => {
@@ -235,9 +291,9 @@ export default function ShriAmbaLanding() {
     'pointer-events-none absolute left-0 top-1.5 text-[11px] uppercase tracking-[0.2em] text-midnight-900/50 transition-all peer-placeholder-shown:top-6 peer-placeholder-shown:text-sm peer-placeholder-shown:normal-case peer-placeholder-shown:tracking-normal peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:uppercase peer-focus:tracking-[0.2em] peer-focus:text-gold-600';
 
   return (
-    <div className="min-h-screen bg-ivory-50 font-sans text-midnight-900">
+    <div className="min-h-screen overflow-x-clip bg-ivory-50 font-sans text-midnight-900">
       {/* ============ Announcement bar ============ */}
-      <div className="relative z-50 bg-gradient-to-r from-gold-600 via-gold-400 to-gold-600 bg-[length:200%_100%] animate-shimmer text-midnight-950">
+      <div className="relative z-50 animate-shimmer bg-gradient-to-r from-gold-600 via-gold-400 to-gold-600 bg-[length:200%_100%] text-midnight-950">
         <p className="mx-auto flex max-w-7xl items-center justify-center gap-2 px-4 py-2 text-center text-[11px] font-medium tracking-[0.12em] sm:text-xs">
           <Sparkles className="h-3.5 w-3.5 shrink-0" />
           This is a Custom Demo Website Built for Shri Amba Textiles.
@@ -252,47 +308,43 @@ export default function ShriAmbaLanding() {
             : 'bg-midnight-950 py-5'
         }`}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 sm:px-8">
-          <a href="#top" className="group flex items-center gap-3" aria-label={BRAND.name}>
-            <span className="grid h-10 w-10 place-items-center border border-gold-500/60 font-serif text-lg text-gold-400 transition-colors group-hover:bg-gold-500 group-hover:text-midnight-950">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
+          <a href="#top" className="group flex min-w-0 items-center gap-3" aria-label={BRAND.name}>
+            <span className="grid h-10 w-10 shrink-0 place-items-center border border-gold-500/60 font-serif text-lg text-gold-400 transition-colors group-hover:bg-gold-500 group-hover:text-midnight-950">
               SA
             </span>
-            <span className="leading-tight">
-              <span className="block font-serif text-xl tracking-wide text-gold-400 sm:text-2xl">
+            <span className="min-w-0 leading-tight">
+              <span className="block truncate font-serif text-xl tracking-wide text-gold-400 sm:text-2xl">
                 Shri Amba Textiles
               </span>
-              <span className="hidden text-[10px] uppercase tracking-[0.35em] text-ivory-100/50 sm:block">
-                Est. Chandni Chowk · Delhi
+              <span className="hidden text-[10px] uppercase tracking-[0.3em] text-ivory-100/50 sm:block">
+                Home of <SarvaMark className="text-gold-300/80 normal-case" /> · Chandni Chowk
               </span>
             </span>
           </a>
 
-          <nav className="hidden items-center gap-10 md:flex">
-            {[
-              ['Our Promise', 'trust'],
-              ['Why Us', 'value'],
-              ['Collections', 'collections'],
-            ].map(([label, id]) => (
+          <nav className="hidden items-center gap-9 lg:flex">
+            {NAV.map(([label, id]) => (
               <button
                 key={id}
                 onClick={() => scrollToId(id)}
-                className="relative text-[13px] tracking-wide text-ivory-100/70 transition-colors hover:text-gold-400 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-gold-400 after:transition-all hover:after:w-full"
+                className="relative text-[13px] tracking-wide text-ivory-100/70 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-gold-400 after:transition-all hover:text-gold-400 hover:after:w-full"
               >
                 {label}
               </button>
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <button
               onClick={() => scrollToId('contact')}
-              className="group inline-flex items-center gap-2 border border-gold-500 px-5 py-2.5 text-[12px] font-medium uppercase tracking-[0.2em] text-gold-400 transition-all duration-300 hover:bg-gold-500 hover:text-midnight-950"
+              className="group inline-flex items-center gap-2 border border-gold-500 px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-gold-400 transition-all duration-300 hover:bg-gold-500 hover:text-midnight-950 sm:px-5 sm:text-[12px]"
             >
               Contact Us
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="hidden h-3.5 w-3.5 transition-transform group-hover:translate-x-1 sm:block" />
             </button>
             <button
-              className="text-ivory-100/80 md:hidden"
+              className="text-ivory-100/80 lg:hidden"
               onClick={() => setMobileNav((v) => !v)}
               aria-label="Toggle menu"
               aria-expanded={mobileNav}
@@ -303,13 +355,8 @@ export default function ShriAmbaLanding() {
         </div>
 
         {mobileNav && (
-          <div className="border-t border-gold-500/15 bg-midnight-950 md:hidden">
-            {[
-              ['Our Promise', 'trust'],
-              ['Why Us', 'value'],
-              ['Collections', 'collections'],
-              ['Contact', 'contact'],
-            ].map(([label, id]) => (
+          <div className="border-t border-gold-500/15 bg-midnight-950 lg:hidden">
+            {[...NAV, ['Contact', 'contact']].map(([label, id]) => (
               <button
                 key={id}
                 onClick={() => {
@@ -327,58 +374,36 @@ export default function ShriAmbaLanding() {
 
       <main id="top">
         {/* ============ Hero ============ */}
-        <section className="relative flex min-h-[calc(100vh-110px)] items-center overflow-hidden bg-midnight-950">
-          <div className="absolute inset-0">
-            {HERO_MEDIA.video ? (
-              <video
-                className="h-full w-full object-cover"
-                src={HERO_MEDIA.video}
-                poster={HERO_MEDIA.image}
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
-            ) : (
-              <img
-                src={HERO_MEDIA.image}
-                alt=""
-                className="h-full w-full animate-slow-zoom object-cover object-[center_25%]"
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-r from-midnight-950 via-midnight-950/85 to-midnight-950/30" />
-            <div className="absolute inset-0 bg-gradient-to-t from-midnight-950 via-transparent to-midnight-950/40" />
-          </div>
+        <section className="relative overflow-hidden bg-midnight-950">
+          <div className="pointer-events-none absolute -left-40 top-20 h-[30rem] w-[30rem] rounded-full bg-gold-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute inset-6 hidden border border-gold-500/10 lg:block" />
 
-          {/* fine gold frame */}
-          <div className="pointer-events-none absolute inset-6 hidden border border-gold-500/15 lg:block" />
-
-          <div className="relative mx-auto w-full max-w-7xl px-5 py-24 sm:px-8">
-            <div className="max-w-3xl">
+          <div className="relative mx-auto grid max-w-7xl items-center gap-16 px-5 pb-24 pt-16 sm:px-8 lg:min-h-[calc(100vh-110px)] lg:grid-cols-[1.1fr_1fr] lg:py-20">
+            <div>
               <Reveal>
-                <div className="mb-8 inline-flex items-center gap-3 border border-gold-500/30 bg-midnight-950/40 px-4 py-2 backdrop-blur">
+                <div className="mb-8 inline-flex items-center gap-3 border border-gold-500/30 bg-midnight-900/60 px-4 py-2">
                   <BadgeCheck className="h-4 w-4 text-gold-400" />
-                  <span className="text-[11px] uppercase tracking-[0.3em] text-ivory-100/80">
-                    {BRAND.years} Years of Legacy · Chandni Chowk
+                  <span className="text-[11px] uppercase tracking-[0.25em] text-ivory-100/80">
+                    {BRAND.years} Years · Chandni Chowk, Delhi
                   </span>
                 </div>
               </Reveal>
 
               <Reveal delay={150}>
-                <h1 className="font-serif text-5xl font-light leading-[1.05] text-ivory-50 sm:text-6xl lg:text-[5.5rem]">
-                  Wholesale textiles,
+                <h1 className="font-serif text-5xl font-light leading-[1.05] text-ivory-50 sm:text-6xl xl:text-[5.25rem]">
+                  Premium suits,
                   <br />
-                  <span className="italic text-gold-400">crafted for retailers</span>
+                  <span className="italic text-gold-400">wholesale-priced</span>
                   <br />
-                  who value trust.
+                  for India's boutiques.
                 </h1>
               </Reveal>
 
               <Reveal delay={300}>
                 <p className="mt-8 max-w-xl text-base font-light leading-relaxed text-ivory-100/70 sm:text-lg">
-                  Designer sharara sets, luxe velvets and everyday unstitched suits — sourced
-                  directly from the heart of Delhi's textile market, with minimums made for growing
-                  businesses.
+                  Top catalogue brands and our own exclusive <SarvaMark className="text-gold-300" />{' '}
+                  non-catalogue designs, under one roof — sourced straight from Chandni Chowk, with
+                  minimums made for growing retailers.
                 </p>
               </Reveal>
 
@@ -393,24 +418,24 @@ export default function ShriAmbaLanding() {
                     <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </button>
                   <button
-                    onClick={() => scrollToId('collections')}
+                    onClick={() => scrollToId('fresh')}
                     className="inline-flex items-center justify-center gap-2 px-6 py-4 text-[13px] uppercase tracking-[0.2em] text-ivory-100/80 transition-colors hover:text-gold-400"
                   >
-                    View Collections
+                    This Week's Arrivals
                   </button>
                 </div>
               </Reveal>
 
               <Reveal delay={600}>
-                <dl className="mt-20 grid max-w-xl grid-cols-3 divide-x divide-gold-500/20 border-t border-gold-500/20 pt-8">
+                <dl className="mt-16 grid max-w-xl grid-cols-3 divide-x divide-gold-500/20 border-t border-gold-500/20 pt-8">
                   {[
                     [BRAND.years, 'Years in trade'],
                     ['8–10', 'Sets MOQ'],
-                    ['100%', 'Direct sourcing'],
+                    ['8+', 'Catalogue brands'],
                   ].map(([k, v]) => (
-                    <div key={v} className="px-4 first:pl-0">
+                    <div key={v} className="px-3 first:pl-0 sm:px-4">
                       <dt className="font-serif text-3xl text-gold-400 sm:text-4xl">{k}</dt>
-                      <dd className="mt-1 text-[11px] uppercase tracking-[0.2em] text-ivory-100/50">
+                      <dd className="mt-1 text-[10px] uppercase tracking-[0.2em] text-ivory-100/50 sm:text-[11px]">
                         {v}
                       </dd>
                     </div>
@@ -418,11 +443,44 @@ export default function ShriAmbaLanding() {
                 </dl>
               </Reveal>
             </div>
+
+            {/* Collage of real collection photography */}
+            <Reveal delay={300} className="relative mx-auto w-full max-w-md lg:max-w-none">
+              <div className="relative ml-auto w-[78%]">
+                <div className="absolute -right-4 -top-4 h-full w-full border border-gold-500/40" />
+                <img
+                  src={img('model-emerald')}
+                  alt="Emerald printed suit with paisley dupatta"
+                  width="900"
+                  height="1126"
+                  className="relative aspect-[4/5] w-full object-cover shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9)]"
+                />
+              </div>
+              <div className="absolute -bottom-10 left-0 w-[44%] border-4 border-midnight-950 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.9)]">
+                <img
+                  src={img('model-rust')}
+                  alt="Rust embroidered suit with printed dupatta"
+                  width="900"
+                  height="1126"
+                  className="aspect-[4/5] w-full object-cover"
+                />
+              </div>
+              <div className="absolute -left-2 top-8 hidden items-center gap-3 bg-ivory-50 px-4 py-3 shadow-xl sm:flex">
+                <Instagram className="h-5 w-5 text-gold-600" />
+                <div className="leading-tight">
+                  <p className="flex items-center gap-1 text-sm font-semibold text-midnight-900">
+                    @{BRAND.instagram}
+                    <BadgeCheck className="h-4 w-4 fill-sky-500 text-white" />
+                  </p>
+                  <p className="text-[11px] text-midnight-900/50">New drops every week</p>
+                </div>
+              </div>
+            </Reveal>
           </div>
 
           <button
-            onClick={() => scrollToId('trust')}
-            className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-ivory-100/40 transition-colors hover:text-gold-400 md:flex"
+            onClick={() => scrollToId('brands')}
+            className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-ivory-100/40 transition-colors hover:text-gold-400 lg:flex"
             aria-label="Scroll down"
           >
             <span className="text-[10px] uppercase tracking-[0.4em]">Scroll</span>
@@ -430,11 +488,30 @@ export default function ShriAmbaLanding() {
           </button>
         </section>
 
+        {/* ============ Catalogue brand marquee ============ */}
+        <section id="brands" className="border-y border-gold-500/20 bg-ivory-100 py-10">
+          <p className="text-center text-[11px] uppercase tracking-[0.35em] text-midnight-900/50">
+            Premium catalogue collections · all under one roof
+          </p>
+          <div className="relative mt-6 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+            <div className="flex w-max animate-marquee items-center hover:[animation-play-state:paused]">
+              {[...CATALOGUE_BRANDS, ...CATALOGUE_BRANDS].map((b, i) => (
+                <span key={i} className="flex items-center" aria-hidden={i >= CATALOGUE_BRANDS.length}>
+                  <span className="px-8 font-serif text-3xl italic text-midnight-900/80 sm:px-12 sm:text-4xl">
+                    {b}
+                  </span>
+                  <span className="h-1.5 w-1.5 rotate-45 bg-gold-500" />
+                </span>
+              ))}
+            </div>
+          </div>
+          <p className="mt-6 text-center text-sm text-midnight-900/50">& many more catalogue houses</p>
+        </section>
+
         {/* ============ Trust ============ */}
-        <section id="trust" className="relative overflow-hidden bg-ivory-100 py-28 sm:py-36">
-          {/* subtle textile weave pattern */}
+        <section id="trust" className="relative overflow-hidden bg-ivory-50 py-28 sm:py-36">
           <div
-            className="pointer-events-none absolute inset-0 opacity-[0.35]"
+            className="pointer-events-none absolute inset-0 opacity-40"
             style={{
               backgroundImage:
                 'repeating-linear-gradient(45deg, rgba(201,165,90,0.08) 0 1px, transparent 1px 14px), repeating-linear-gradient(-45deg, rgba(201,165,90,0.08) 0 1px, transparent 1px 14px)',
@@ -463,14 +540,14 @@ export default function ShriAmbaLanding() {
             <Reveal delay={300}>
               <div className="mx-auto mt-16 grid max-w-3xl gap-10 border-t border-midnight-900/10 pt-12 text-left sm:grid-cols-2">
                 <p className="leading-relaxed text-midnight-900/70">
-                  For over two and a half decades, retailers across India have walked into our
-                  Chandni Chowk store not just for fabric — but for a relationship. Honest pricing,
+                  For over two and a half decades, boutique owners and retailers have walked into our
+                  Chandni Chowk showroom not just for suits — but for a relationship. Honest pricing,
                   consistent quality and a word that is always kept.
                 </p>
                 <div className="space-y-4">
                   {[
                     'Transparent wholesale pricing — no hidden margins',
-                    'Quality checked before every dispatch',
+                    'Every piece checked before dispatch',
                     'Relationships that span generations of retailers',
                   ].map((t) => (
                     <div key={t} className="flex items-start gap-3">
@@ -487,14 +564,18 @@ export default function ShriAmbaLanding() {
         {/* ============ Value proposition ============ */}
         <section id="value" className="bg-midnight-950 py-28 text-ivory-50 sm:py-32">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
-            <Reveal className="mx-auto max-w-2xl text-center">
+            <Reveal className="mx-auto max-w-3xl text-center">
               <Eyebrow light>The Wholesale Advantage</Eyebrow>
-              <h2 className="mt-5 font-serif text-4xl font-light sm:text-5xl">
-                Built for <span className="italic text-gold-400">growing</span> retailers
+              <h2 className="mt-6 font-serif text-3xl font-light leading-snug sm:text-5xl">
+                “Har retailer ki ek hi tension hoti hai —{' '}
+                <span className="italic text-gold-400">
+                  latest designs, premium quality aur wholesale prices.
+                </span>
+                ”
               </h2>
-              <p className="mt-5 text-ivory-100/60">
-                Whether you run a boutique, a family shop or a new online store — we make premium
-                inventory accessible.
+              <p className="mt-6 text-ivory-100/60">
+                We built our business around solving all three — for boutiques, family shops and new
+                online sellers alike.
               </p>
             </Reveal>
 
@@ -510,9 +591,7 @@ export default function ShriAmbaLanding() {
                     </div>
                     <h3 className="mt-10 font-serif text-2xl text-ivory-50 lg:text-3xl">{title}</h3>
                     {highlight && (
-                      <p className="mt-2 text-sm font-medium tracking-wide text-gold-400">
-                        {highlight}
-                      </p>
+                      <p className="mt-2 text-sm font-medium tracking-wide text-gold-400">{highlight}</p>
                     )}
                     <p className="mt-4 leading-relaxed text-ivory-100/55">{desc}</p>
                     <span className="absolute bottom-0 left-0 h-px w-0 bg-gold-400 transition-all duration-700 group-hover:w-full" />
@@ -520,11 +599,22 @@ export default function ShriAmbaLanding() {
                 </Reveal>
               ))}
             </div>
+
+            <Reveal delay={200}>
+              <ul className="mt-12 grid grid-cols-2 gap-6 lg:grid-cols-4">
+                {PROMISES.map(({ icon: Icon, label }) => (
+                  <li key={label} className="flex items-center gap-3 text-sm text-ivory-100/75">
+                    <Icon className="h-5 w-5 shrink-0 text-gold-400" strokeWidth={1.5} />
+                    {label}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
           </div>
         </section>
 
         {/* ============ Collections ============ */}
-        <section id="collections" className="bg-ivory-50 py-28 sm:py-32">
+        <section id="collections" className="scroll-mt-20 bg-ivory-50 py-28 sm:py-32">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
             <Reveal className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
               <div>
@@ -534,37 +624,39 @@ export default function ShriAmbaLanding() {
                 </h2>
               </div>
               <p className="max-w-sm text-midnight-900/60">
-                Pricing is shared exclusively with verified retailers. Hover a collection to request
+                Pricing is shared exclusively with verified retailers. Pick a collection to request
                 your bulk quote.
               </p>
             </Reveal>
 
-            <div className="mt-16 grid gap-8 md:grid-cols-3">
+            <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {COLLECTIONS.map((c, i) => (
-                <Reveal key={c.title} delay={i * 150}>
-                  <article className="group relative aspect-[3/4] overflow-hidden bg-midnight-900">
+                <Reveal key={c.title} delay={i * 120}>
+                  <article className="group relative aspect-[4/5] overflow-hidden bg-midnight-900">
                     <img
                       src={c.image}
                       alt={c.title}
                       loading="lazy"
+                      width="900"
+                      height="1126"
                       className="h-full w-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-midnight-950 via-midnight-950/30 to-transparent transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-midnight-950 via-midnight-950/30 to-transparent" />
                     <div className="absolute inset-0 bg-midnight-950/0 transition-colors duration-500 group-hover:bg-midnight-950/50" />
                     <div className="pointer-events-none absolute inset-4 border border-gold-400/0 transition-all duration-700 group-hover:inset-5 group-hover:border-gold-400/50" />
 
-                    <span className="absolute left-6 top-6 bg-ivory-50/90 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.25em] text-midnight-900 backdrop-blur">
+                    <span className="absolute left-5 top-5 bg-ivory-50/90 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.22em] text-midnight-900 backdrop-blur">
                       {c.tag}
                     </span>
 
-                    <div className="absolute inset-x-0 bottom-0 p-8">
-                      <h3 className="font-serif text-3xl text-ivory-50">{c.title}</h3>
-                      <p className="mt-3 max-h-24 text-sm leading-relaxed text-ivory-100/70 transition-all duration-500 md:max-h-0 md:overflow-hidden md:opacity-0 md:group-hover:max-h-24 md:group-hover:opacity-100">
+                    <div className="absolute inset-x-0 bottom-0 p-6">
+                      <h3 className="font-serif text-2xl leading-tight text-ivory-50 xl:text-[1.7rem]">{c.title}</h3>
+                      <p className="mt-3 max-h-28 text-sm leading-relaxed text-ivory-100/75 transition-all duration-500 lg:max-h-0 lg:overflow-hidden lg:opacity-0 lg:group-hover:max-h-28 lg:group-hover:opacity-100">
                         {c.desc}
                       </p>
                       <button
                         onClick={() => requestQuote(c.title)}
-                        className="mt-6 inline-flex items-center gap-2 bg-gold-500 px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.2em] text-midnight-950 transition-all duration-500 hover:bg-gold-400 md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 md:focus:translate-y-0 md:focus:opacity-100"
+                        className="mt-5 inline-flex items-center gap-2 bg-gold-500 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-midnight-950 transition-all duration-500 hover:bg-gold-400 lg:translate-y-4 lg:opacity-0 lg:focus:translate-y-0 lg:focus:opacity-100 lg:group-hover:translate-y-0 lg:group-hover:opacity-100"
                       >
                         Request Bulk Quote
                         <ArrowRight className="h-4 w-4" />
@@ -577,11 +669,188 @@ export default function ShriAmbaLanding() {
           </div>
         </section>
 
+        {/* ============ Fresh arrivals rail ============ */}
+        <section id="fresh" className="scroll-mt-20 overflow-hidden bg-ivory-100 py-28 sm:py-32">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8">
+            <Reveal className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
+              <div className="max-w-2xl">
+                <Eyebrow>Fresh Non-Catalogue · This Week</Eyebrow>
+                <h2 className="mt-5 font-serif text-4xl font-light sm:text-5xl">
+                  Designs your customers{' '}
+                  <span className="italic text-gold-600">won't find everywhere</span>
+                </h2>
+                <p className="mt-5 text-midnight-900/60">
+                  Every week, a fresh drop of exclusive unstitched suits — premium fabrics, finished
+                  well, priced to give you better retail margins. Limited sets per design.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                {[
+                  [-1, ArrowLeft, 'Previous designs'],
+                  [1, ArrowRight, 'Next designs'],
+                ].map(([dir, Icon, label]) => (
+                  <button
+                    key={label}
+                    onClick={() => scrollRail(dir)}
+                    aria-label={label}
+                    className="grid h-12 w-12 place-items-center border border-midnight-900/20 text-midnight-900 transition-colors hover:border-gold-500 hover:bg-gold-500"
+                  >
+                    <Icon className="h-5 w-5" />
+                  </button>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+
+          <div
+            ref={railRef}
+            className="mt-14 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-5 pb-6 [scrollbar-width:none] sm:px-8 xl:px-[max(2rem,calc((100vw-80rem)/2+2rem))] [&::-webkit-scrollbar]:hidden"
+          >
+            {FRESH_ARRIVALS.map((d, i) => (
+              <article
+                key={d.name}
+                className="group w-[78vw] shrink-0 snap-start sm:w-[22rem]"
+              >
+                <div className="relative aspect-[4/5] overflow-hidden bg-midnight-900">
+                  <img
+                    src={d.image}
+                    alt={`${d.name} unstitched suit`}
+                    loading="lazy"
+                    width="900"
+                    height="1125"
+                    className="h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105"
+                  />
+                  <span className="absolute left-4 top-4 bg-midnight-950/85 px-3 py-1 font-serif text-sm italic text-gold-400">
+                    No. {String(i + 1).padStart(2, '0')}
+                  </span>
+                </div>
+                <div className="mt-5 flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="font-serif text-2xl">{d.name}</h3>
+                    <p className="mt-1 text-sm text-midnight-900/55">{d.note}</p>
+                  </div>
+                  <button
+                    onClick={() => requestQuote(`${d.name} (non-catalogue)`)}
+                    aria-label={`Ask about ${d.name}`}
+                    className="grid h-11 w-11 shrink-0 place-items-center border border-gold-500/50 text-gold-600 transition-all hover:bg-gold-500 hover:text-midnight-950"
+                  >
+                    <ArrowUpRight className="h-5 w-5" />
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ============ Showroom ============ */}
+        <section id="showroom" className="scroll-mt-20 bg-ivory-50 py-28 sm:py-32">
+          <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 sm:px-8 lg:grid-cols-[1.3fr_1fr]">
+            <Reveal className="relative">
+              <div className="absolute -bottom-4 -left-4 hidden h-full w-full border border-gold-500/40 sm:block" />
+              <img
+                src={img('showroom')}
+                alt="Shri Amba Textiles showroom with shelves of suits and a seating table for retailers"
+                loading="lazy"
+                width="1359"
+                height="906"
+                className="relative aspect-[3/2] w-full object-cover shadow-[0_40px_80px_-40px_rgba(11,18,32,0.6)]"
+              />
+            </Reveal>
+            <Reveal delay={150}>
+              <Eyebrow>The Showroom</Eyebrow>
+              <h2 className="mt-5 font-serif text-4xl font-light sm:text-5xl">
+                Pull up a chair in <span className="italic text-gold-600">Chandni Chowk</span>
+              </h2>
+              <p className="mt-6 leading-relaxed text-midnight-900/65">
+                Walk past the bustle of the market into a calm, well-lit showroom. Shelves of
+                catalogue sets and racks of non-catalogue designs, with a table where you can sit,
+                compare fabrics and build your order at your own pace.
+              </p>
+              <div className="mt-10 space-y-5 border-t border-midnight-900/10 pt-8">
+                <p className="flex items-start gap-3 text-midnight-900/80">
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-gold-600" strokeWidth={1.5} />
+                  <span>
+                    {BRAND.address.line1}
+                    <br />
+                    {BRAND.address.line2}
+                  </span>
+                </p>
+                <p className="flex items-center gap-3 text-midnight-900/80">
+                  <Clock className="h-5 w-5 shrink-0 text-gold-600" strokeWidth={1.5} />
+                  {BRAND.hours}
+                </p>
+              </div>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(BRAND.mapsQuery)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group mt-10 inline-flex items-center gap-3 bg-midnight-950 px-8 py-4 text-[12px] font-semibold uppercase tracking-[0.2em] text-gold-400 transition-colors hover:bg-midnight-800"
+              >
+                <Navigation className="h-4 w-4" />
+                Get Directions
+              </a>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ============ Instagram lookbook ============ */}
+        <section className="bg-midnight-950 py-24">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8">
+            <Reveal className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+              <div>
+                <Eyebrow light>The Lookbook</Eyebrow>
+                <h2 className="mt-5 flex flex-wrap items-center gap-3 font-serif text-4xl font-light text-ivory-50 sm:text-5xl">
+                  @{BRAND.instagram}
+                  <BadgeCheck className="h-8 w-8 fill-sky-500 text-midnight-950" />
+                </h2>
+                <p className="mt-4 text-ivory-100/55">
+                  New arrivals, catalogue launches and weekly drops — follow along on Instagram.
+                </p>
+              </div>
+              <a
+                href={`https://instagram.com/${BRAND.instagram}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2 border border-gold-500 px-6 py-3 text-[12px] font-medium uppercase tracking-[0.2em] text-gold-400 transition-all hover:bg-gold-500 hover:text-midnight-950"
+              >
+                <Instagram className="h-4 w-4" />
+                Follow
+              </a>
+            </Reveal>
+
+            <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {LOOKBOOK.map((src, i) => (
+                <Reveal key={src} delay={i * 80}>
+                  <a
+                    href={`https://instagram.com/${BRAND.instagram}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative block aspect-[4/5] overflow-hidden"
+                    aria-label={`View look ${i + 1} on Instagram`}
+                  >
+                    <img
+                      src={src}
+                      alt=""
+                      loading="lazy"
+                      width="900"
+                      height="1126"
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <span className="absolute inset-0 grid place-items-center bg-midnight-950/0 text-ivory-50 opacity-0 transition-all duration-500 group-hover:bg-midnight-950/50 group-hover:opacity-100">
+                      <Instagram className="h-7 w-7" />
+                    </span>
+                  </a>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ============ Contact & lead capture ============ */}
         <section id="contact" className="scroll-mt-20 bg-ivory-100">
           <div className="mx-auto grid max-w-7xl lg:grid-cols-2">
             {/* Left — details */}
-            <div className="relative overflow-hidden bg-midnight-950 px-5 py-20 text-ivory-50 sm:px-12 lg:py-28">
+            <div className="relative overflow-hidden bg-midnight-900 px-5 py-20 text-ivory-50 sm:px-12 lg:py-28">
               <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gold-500/10 blur-3xl" />
               <Reveal className="relative">
                 <Eyebrow light>Visit · Call · Chat</Eyebrow>
@@ -595,14 +864,9 @@ export default function ShriAmbaLanding() {
                       <MapPin className="h-5 w-5" strokeWidth={1.5} />
                     </span>
                     <div>
-                      <p className="text-[11px] uppercase tracking-[0.25em] text-ivory-100/45">
-                        Store Address
-                      </p>
+                      <p className="text-[11px] uppercase tracking-[0.25em] text-ivory-100/45">Store Address</p>
                       <p className="mt-2 text-lg leading-snug text-ivory-50">{BRAND.address.line1}</p>
                       <p className="text-ivory-100/65">{BRAND.address.line2}</p>
-                      <p className="mt-2 flex items-center gap-2 text-sm text-ivory-100/45">
-                        <Clock className="h-3.5 w-3.5" /> {BRAND.hours}
-                      </p>
                     </div>
                   </div>
 
@@ -616,19 +880,18 @@ export default function ShriAmbaLanding() {
                       <Instagram className="h-5 w-5" strokeWidth={1.5} />
                     </span>
                     <div>
-                      <p className="text-[11px] uppercase tracking-[0.25em] text-ivory-100/45">
-                        Instagram
-                      </p>
-                      <p className="mt-2 text-lg text-ivory-50 transition-colors group-hover:text-gold-400">
+                      <p className="text-[11px] uppercase tracking-[0.25em] text-ivory-100/45">Instagram</p>
+                      <p className="mt-2 flex items-center gap-1.5 text-lg text-ivory-50 transition-colors group-hover:text-gold-400">
                         @{BRAND.instagram}
+                        <BadgeCheck className="h-5 w-5 fill-sky-500 text-midnight-900" />
                       </p>
-                      <p className="text-sm text-ivory-100/45">New arrivals posted daily</p>
+                      <p className="text-sm text-ivory-100/45">DM for inquiries & bulk orders</p>
                     </div>
                   </a>
                 </div>
 
                 {/* WhatsApp block */}
-                <div className="relative mt-14 overflow-hidden border border-[#25D366]/30 bg-gradient-to-br from-[#25D366]/15 via-midnight-900 to-midnight-900 p-8">
+                <div className="relative mt-14 overflow-hidden border border-[#25D366]/30 bg-gradient-to-br from-[#25D366]/15 via-midnight-950 to-midnight-950 p-8">
                   <div className="pointer-events-none absolute -right-10 -top-10 text-[#25D366]/10">
                     <WhatsAppIcon className="h-48 w-48" />
                   </div>
@@ -640,12 +903,12 @@ export default function ShriAmbaLanding() {
                     <div>
                       <p className="font-serif text-2xl text-ivory-50">Fastest way to order</p>
                       <p className="mt-1 text-sm text-ivory-100/60">
-                        Get catalogues, live stock photos & rates on WhatsApp — usually within minutes.
+                        Get catalogue PDFs, live stock photos & rates on WhatsApp.
                       </p>
                     </div>
                   </div>
                   <a
-                    href={waLink('Namaste! I am a retailer and would like to see your wholesale catalogue.')}
+                    href={waLink('Namaste! I am a retailer and would like to see your wholesale catalogues.')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="relative mt-8 flex w-full items-center justify-center gap-3 bg-[#25D366] px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.2em] text-white transition-all hover:bg-[#1ebe5a] hover:shadow-[0_15px_40px_-10px_rgba(37,211,102,0.7)]"
@@ -661,11 +924,9 @@ export default function ShriAmbaLanding() {
             <div className="bg-ivory-50 px-5 py-20 sm:px-12 lg:py-28">
               <Reveal delay={150}>
                 <Eyebrow>Retailer Inquiry</Eyebrow>
-                <h3 className="mt-5 font-serif text-3xl font-light sm:text-4xl">
-                  Request wholesale pricing
-                </h3>
+                <h3 className="mt-5 font-serif text-3xl font-light sm:text-4xl">Request wholesale pricing</h3>
                 <p className="mt-4 text-midnight-900/60">
-                  Share a few details and our team will send you the catalogue and trade rates.
+                  Share a few details and our team will send you catalogues and trade rates.
                 </p>
 
                 {submitted ? (
@@ -690,11 +951,11 @@ export default function ShriAmbaLanding() {
                   <form onSubmit={handleSubmit} noValidate className="mt-12 space-y-8">
                     <div className="grid gap-8 sm:grid-cols-2">
                       {[
-                        ['name', 'Your Name', 'text', 'name'],
-                        ['business', 'Shop / Business Name', 'text', 'organization'],
-                      ].map(([key, label, type, ac]) => (
+                        ['name', 'Your Name', 'name'],
+                        ['business', 'Shop / Boutique Name', 'organization'],
+                      ].map(([key, label, ac]) => (
                         <div key={key} className="relative">
-                          <input type={type} autoComplete={ac} placeholder={label} className={inputClass(key)} {...field(key)} />
+                          <input type="text" autoComplete={ac} placeholder={label} className={inputClass(key)} {...field(key)} />
                           <label htmlFor={key} className={labelClass}>
                             {label}
                           </label>
@@ -740,7 +1001,7 @@ export default function ShriAmbaLanding() {
                         {...field('requirements')}
                       />
                       <label htmlFor="requirements" className={labelClass}>
-                        Requirements — fabrics, quantities, budget
+                        Requirements — brands, designs, quantities
                       </label>
                       {errors.requirements && (
                         <p id="requirements-error" className="mt-2 text-xs text-red-500">
@@ -773,7 +1034,10 @@ export default function ShriAmbaLanding() {
           <div className="flex flex-col items-center gap-10 text-center md:flex-row md:justify-between md:text-left">
             <div>
               <p className="font-serif text-3xl text-gold-400">{BRAND.name}</p>
-              <p className="mt-2 max-w-sm text-sm italic text-ivory-100/45">“{BRAND.tagline}”</p>
+              <p className="mt-1 text-sm text-ivory-100/50">
+                Home of <SarvaMark className="text-gold-300" />
+              </p>
+              <p className="mt-3 max-w-sm text-sm italic text-ivory-100/45">“{BRAND.tagline}”</p>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-4">
@@ -796,8 +1060,10 @@ export default function ShriAmbaLanding() {
 
           <Ornament className="my-12 opacity-60" />
 
-          <div className="flex flex-col items-center justify-between gap-4 text-xs md:flex-row">
-            <p>© {new Date().getFullYear()} {BRAND.name}. All rights reserved.</p>
+          <div className="flex flex-col items-center justify-between gap-4 text-center text-xs md:flex-row md:text-left">
+            <p>
+              © {new Date().getFullYear()} {BRAND.legalName}. All rights reserved.
+            </p>
             <p className="tracking-wide text-ivory-100/40">
               {BRAND.address.line1}, {BRAND.address.line2}
             </p>
